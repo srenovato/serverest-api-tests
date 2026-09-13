@@ -1,4 +1,5 @@
 const { defineConfig } = require("cypress");
+require("dotenv").config();
 
 module.exports = defineConfig({
   reporter: "cypress-mochawesome-reporter",
@@ -21,6 +22,10 @@ module.exports = defineConfig({
 
   e2e: {
     baseUrl: "https://front.serverest.dev/login",
+
+    env: {
+      TEST_USER_PASSWORD: process.env.TEST_USER_PASSWORD,
+    },
 
     setupNodeEvents(on, config) {
       require("cypress-mochawesome-reporter/plugin")(on);

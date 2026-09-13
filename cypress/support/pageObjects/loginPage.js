@@ -20,7 +20,7 @@ class LoginPage {
       cy.get('[data-testid="cadastrar"]').click()
       cy.get('[data-testid="nome"]').type(name)
       cy.get('[data-testid="email"]').type(email)
-      cy.get('[data-testid="password"]').type("MoutsTI@123")
+      cy.get('[data-testid="password"]').type(Cypress.env('TEST_USER_PASSWORD'))
       cy.get('[data-testid="cadastrar"]').click()
     }
 
