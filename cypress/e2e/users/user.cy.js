@@ -1,66 +1,237 @@
 import userApi from '../../support/api/userApi'
 import { logUser } from '../../support/helpers/logger'
 import { createUser } from '../../support/factories/userFactory'
+import {
+  validateUserCreated,
+  validateDuplicateEmailError,
+  validateUserDeleted,
+  validateUserDeleteNoOp,
+  validateRequiredFieldsError,
+  validateUserNotFound,
+  validateUserRetrieved,
+  validateUserListFilteredByEmail,
+  validateUserUpdated
+} from '../../support/validations/userValidations'
 
 describe('User API', () => {
 
-  it('Should create a new user successfully', () => {
+  let createdUserIds = []
 
-    const user = createUser()
-    
-    logUser(user)
+  beforeEach(() => {
+    createdUserIds = []
+  })
 
-    userApi.create(user)
-      .then((response) => {
+  afterEach(() => {
+    createdUserIds.forEach((id) => userApi.delete(id, false))
+  })
 
-        expect(response.status).to.eq(201)
-        expect(response.body.message).to.eq('Cadastro realizado com sucesso')
-        expect(response.body).to.have.property('_id')
+  describe('Create', () => {
 
-      })
+    it('Should create a new user successfully', () => {
+
+      const user = createUser()
+
+      logUser(user)
+
+      userApi.create(user)
+        .then((response) => {
+
+          validateUserCreated(response)
+          createdUserIds.push(response.body._id)
+
+        })
+
+    })
+
+    it('Should not allow creating a user with an existing email', () => {
+
+      const user = createUser()
+
+      logUser(user)
+
+      userApi.create(user)
+        .then((firstResponse) => {
+
+          validateUserCreated(firstResponse)
+          createdUserIds.push(firstResponse.body._id)
+
+          return userApi.create(user, false)
+
+        })
+        .then((secondResponse) => {
+
+          validateDuplicateEmailError(secondResponse)
+
+        })
+
+    })
+
+    it('Should return validation errors when required fields are missing', () => {
+
+      userApi.create({}, false)
+        .then((response) => {
+
+          validateRequiredFieldsError(response)
+
+        })
+
+    })
 
   })
 
-  it('Should not allow creating a user with an existing email', () => {
+  describe('Read', () => {
 
-    const user = createUser()
+    it('Should retrieve a user by id', () => {
 
-    logUser(user)
+      const user = createUser()
 
-    userApi.create(user)
+      logUser(user)
 
-    userApi.create(user, false)
-      .then((response) => {
+      userApi.create(user)
+        .then((createResponse) => {
 
-        expect(response.status).to.eq(400)
-        expect(response.body.message).to.eq('Este email já está sendo usado')
+          validateUserCreated(createResponse)
+          createdUserIds.push(createResponse.body._id)
 
-      })
+          return userApi.getById(createResponse.body._id)
+
+        })
+        .then((getResponse) => {
+
+          validateUserRetrieved(getResponse, user)
+
+        })
+
+    })
+
+    it('Should return an error when retrieving a user with a non-existent id', () => {
+
+      userApi.getById('idinvalido123456', false)
+        .then((response) => {
+
+          validateUserNotFound(response)
+
+        })
+
+    })
+
+    it('Should list users filtered by email', () => {
+
+      const user = createUser()
+
+      logUser(user)
+
+      userApi.create(user)
+        .then((createResponse) => {
+
+          validateUserCreated(createResponse)
+          createdUserIds.push(createResponse.body._id)
+
+          return userApi.getAll({ email: user.email })
+
+        })
+        .then((listResponse) => {
+
+          validateUserListFilteredByEmail(listResponse, user)
+
+        })
+
+    })
 
   })
 
-  it('Should delete an existing user successfully', () => {
+  describe('Update', () => {
 
-    const user = createUser()
+    it('Should update an existing user successfully', () => {
 
-    logUser(user)
+      const user = createUser()
+      const updatedUser = createUser()
 
-    userApi.create(user)
-      .then((createResponse) => {
+      logUser(user)
 
-        expect(createResponse.status).to.eq(201)
+      userApi.create(user)
+        .then((createResponse) => {
 
-        const userId = createResponse.body._id
+          validateUserCreated(createResponse)
+          createdUserIds.push(createResponse.body._id)
 
-        return userApi.delete(userId)
+          return userApi.update(createResponse.body._id, updatedUser)
 
-      })
-      .then((deleteResponse) => {
+        })
+        .then((updateResponse) => {
 
-        expect(deleteResponse.status).to.eq(200)
-        expect(deleteResponse.body.message).to.eq('Registro excluído com sucesso')
+          validateUserUpdated(updateResponse)
 
-      })
+        })
+
+    })
+
+    it('Should not allow updating a user to an email already in use by another user', () => {
+
+      const firstUser = createUser()
+      const secondUser = createUser()
+
+      userApi.create(firstUser)
+        .then((firstResponse) => {
+
+          validateUserCreated(firstResponse)
+          createdUserIds.push(firstResponse.body._id)
+
+          return userApi.create(secondUser)
+
+        })
+        .then((secondResponse) => {
+
+          validateUserCreated(secondResponse)
+          createdUserIds.push(secondResponse.body._id)
+
+          return userApi.update(secondResponse.body._id, { ...secondUser, email: firstUser.email }, false)
+
+        })
+        .then((updateResponse) => {
+
+          validateDuplicateEmailError(updateResponse)
+
+        })
+
+    })
+
+  })
+
+  describe('Delete', () => {
+
+    it('Should delete an existing user successfully', () => {
+
+      const user = createUser()
+
+      logUser(user)
+
+      userApi.create(user)
+        .then((createResponse) => {
+
+          validateUserCreated(createResponse)
+
+          return userApi.delete(createResponse.body._id)
+
+        })
+        .then((deleteResponse) => {
+
+          validateUserDeleted(deleteResponse)
+
+        })
+
+    })
+
+    it('Should return a no-op message when deleting a non-existent id', () => {
+
+      userApi.delete('idinvalido123456')
+        .then((response) => {
+
+          validateUserDeleteNoOp(response)
+
+        })
+
+    })
 
   })
 

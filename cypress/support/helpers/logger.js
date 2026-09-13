@@ -4,6 +4,6 @@ export const logUser = (user) => {
     cy.log('========== USER ==========')
     cy.log(`Name: ${user.nome}`)
     cy.log(`Email: ${user.email}`)
-    cy.log(`Password: ${user.password}`)
+    cy.log('Password: ******')
     cy.log('==========================')
 }

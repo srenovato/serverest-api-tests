@@ -17,6 +17,32 @@ class UserApi {
     })
   }
 
+  getById(id, failOnStatusCode = true) {
+    return cy.request({
+      method: 'GET',
+      url: `/usuarios/${id}`,
+      failOnStatusCode
+    })
+  }
+
+  getAll(params = {}, failOnStatusCode = true) {
+    return cy.request({
+      method: 'GET',
+      url: '/usuarios',
+      qs: params,
+      failOnStatusCode
+    })
+  }
+
+  update(id, user, failOnStatusCode = true) {
+    return cy.request({
+      method: 'PUT',
+      url: `/usuarios/${id}`,
+      body: user,
+      failOnStatusCode
+    })
+  }
+
 }
 
 export default new UserApi()
