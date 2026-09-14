@@ -6,3 +6,20 @@ Cypress.Commands.add('createUserApi', (nome, email, password, administrador = 'f
     administrador
   })
 })
+
+Cypress.Commands.add('createProductApi', (nome, preco, descricao, quantidade) => {
+  const adminEmail = `${Date.now()}@teste.com`
+  const adminPassword = Cypress.env('TEST_USER_PASSWORD')
+
+  return cy.createUserApi('Admin Produto', adminEmail, adminPassword, 'true')
+    .then(() => cy.request('POST', 'https://serverest.dev/login', {
+      email: adminEmail,
+      password: adminPassword
+    }))
+    .then((loginResponse) => cy.request({
+      method: 'POST',
+      url: 'https://serverest.dev/produtos',
+      headers: { Authorization: loginResponse.body.authorization },
+      body: { nome, preco, descricao, quantidade }
+    }))
+})

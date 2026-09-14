@@ -23,13 +23,15 @@ describe('Tests performed on the product page', () => {
     const name = faker.person.fullName()
     const email = faker.internet.email()
     const password = Cypress.env('TEST_USER_PASSWORD')
+    const productName = `${faker.commerce.productName()} ${Date.now()}`
 
     cy.createUserApi(name, email, password, 'false')
+    cy.createProductApi(productName, 100, 'This is a test product', 10)
 
     loginPage.visit()
     loginPage.login(email, password)
-    homePage.searchProduct('Tasty Wooden Tuna')
-    homePage.productResultVisible('Tasty Wooden Tuna')
+    homePage.searchProduct(productName)
+    homePage.productResultVisible(productName)
   })
 
   it('Product - No results for a nonexistent product', () => {
