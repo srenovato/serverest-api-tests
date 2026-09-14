@@ -38,11 +38,11 @@ npm -v
 
 # 📦 Installation
 
-Clone the repository:
+This project lives inside the monorepo root, under `backend/`. Clone the repository and move into this folder:
 
 ```bash
 git clone <repository-url>
-cd <repository-folder>
+cd <repository-folder>/backend
 ```
 
 Install all dependencies:

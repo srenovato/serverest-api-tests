@@ -32,16 +32,11 @@ npm -v
 
 # 📦 Installation
 
-Clone this repository:
+This project lives inside the monorepo root, under `frontend/`. Clone the repository and move into this folder:
 
 ```bash
 git clone <repository-url>
-```
-
-Navigate to the project folder:
-
-```bash
-cd <repository-folder>
+cd <repository-folder>/frontend
 ```
 
 Install all project dependencies:
